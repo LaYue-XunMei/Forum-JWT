@@ -43,3 +43,7 @@ spring:
       origin: '*'
       credentials: false
       methods: '*'
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
