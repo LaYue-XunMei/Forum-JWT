@@ -65,10 +65,35 @@ public class RequestLogFilter extends OncePerRequestFilter {
     public void logRequestEnd(ContentCachingResponseWrapper wrapper, long startTime){
         long time = System.currentTimeMillis() - startTime;
         int status = wrapper.getStatus();
-        String content = status != 200 ?
-                status + " 错误" : new String(wrapper.getContentAsByteArray());
+
+        String content;
+        if (status != 200) {
+            content = status + " 错误";
+        } else {
+            // 获取响应内容的 Content-Type
+            String contentType = wrapper.getContentType();
+
+            if (contentType != null &&
+                    (contentType.startsWith("image/") ||
+                            contentType.startsWith("application/octet-stream") ||
+                            contentType.startsWith("video/") ||
+                            contentType.startsWith("audio/"))) {
+                // 二进制内容，不打印原始数据，只记录大小
+                content = "[二进制数据: " + contentType + ", 大小: " + wrapper.getContentSize() + " bytes]";
+            } else {
+                content = new String(wrapper.getContentAsByteArray());
+            }
+        }
+
         log.info("请求处理耗时: {}ms | 响应结果: {}", time, content);
     }
+
+    /**
+     * wrapper.getContentType() 能拿到响应头的 Content-Type（如 image/webp、image/png 等）
+     * 图片、视频、音频、通用二进制流都会被拦截，不再强行转成字符串
+     * 非二进制响应（JSON 字符串等）保持原来的日志打印方式不变
+     * 加了 wrapper.getContentSize() 输出大小，方便调试时确认文件是否正常返回
+     */
 
     /**
      * 请求开始时的日志打印，包含请求全部信息，以及对应用户角色

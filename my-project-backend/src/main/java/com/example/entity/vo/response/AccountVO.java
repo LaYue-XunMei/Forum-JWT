@@ -9,6 +9,6 @@ public class AccountVO {
     String username;//用户名
     String email;//邮箱
     String role;//角色
-    //String avatar;//头像
+    String avatar;//头像
     Date registerTime;//注册时间
 }

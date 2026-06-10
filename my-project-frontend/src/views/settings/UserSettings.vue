@@ -210,7 +210,7 @@ function upLoadSuccess(response){
                          :before-upload="beforeAvatarUpload"
                          :on-success="upLoadSuccess"
                          :headers = "accessHeader()">
-                <el-button  size="small">修改头像</el-button>
+                <el-button  size="small" round>修改头像</el-button>
               </el-upload>
             </div>
             <div style="font-weight: bold">你好，{{store.user.username}}</div>

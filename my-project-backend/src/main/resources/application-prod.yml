@@ -43,6 +43,10 @@ spring:
       origin: '*'
       credentials: false
       methods: '*'
+  minio:
+    endpoint: 'http://localhost:9000'
+    username: 'minioadmin'
+    password: 'minioadmin'
 logging:
   charset:
     console: UTF-8

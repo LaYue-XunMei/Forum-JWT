@@ -37,7 +37,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>1.18.42</version>  <!-- 显式声明版本，用你实际安装的版本 -->
+            <scope>provided</scope>      <!-- 编译时需要，打包时不需要 -->
         </dependency>
         <!--    测试模块    -->
         <dependency>
@@ -139,20 +140,29 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>   <!-- Java 版本 -->
+                    <target>17</target>
+                    <annotationProcessorPaths>
+                        <!-- 显式指定 Lombok 注解处理器 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.42</version> <!-- 请核对实际版本 -->
+                        </path>
+                        <!-- 如果有 MapStruct 等其他处理器，也一并加在这里 -->
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.graalvm.buildtools</groupId>
                 <artifactId>native-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
         <resources>
