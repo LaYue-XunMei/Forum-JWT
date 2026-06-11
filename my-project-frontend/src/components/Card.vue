@@ -5,10 +5,12 @@ defineProps({
   desc:String,
 })
 
+
+
 </script>
 
 <template>
-  <div class="card" >
+  <div class="card">
     <div class="card-header" v-if="title">
       <div>
         <el-icon style="margin-right: 5px;translate:0 2px">

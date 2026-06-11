@@ -47,6 +47,8 @@ spring:
     endpoint: 'http://localhost:9000'
     username: 'minioadmin'
     password: 'minioadmin'
+  weather:
+    key: 46d5ae9eab7e4467937b8fe11be37fbf
 logging:
   charset:
     console: UTF-8
