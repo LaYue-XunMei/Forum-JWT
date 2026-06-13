@@ -8,6 +8,7 @@ import {computed, reactive, ref} from "vue";
 import {ElMessage} from "element-plus";
 
 import {get,post} from "@/net/index.js";
+import TopicEditor from "@/components/TopicEditor.vue";
 
 const today = computed(()=>{
   const date = new Date()
@@ -140,7 +141,7 @@ navigator.geolocation.getCurrentPosition(position =>{
       </div>
     </div>
 
-
+    <topic-editor :show="editor" @success="editor=false" @close="editor=false"/>
 
   </div>
 </template>

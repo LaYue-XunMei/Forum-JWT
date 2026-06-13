@@ -50,7 +50,7 @@ public class ImageServiceImpl extends ServiceImpl<ImageStoreMapper, StoreImage> 
     @Override
     public String uploadImage(MultipartFile file, int id) throws IOException {
         String key = Const.FORUM_IMAGE_COUNTER+id;
-        if(!flowUtils.limitPeriodCounterCheck(key,20,3600))
+        if(!flowUtils.limitPeriodCounterCheck(key,20,3600))//不通过返回空
             return null;
         String imageName = UUID.randomUUID().toString().replace("-","");
         Date date = new Date();

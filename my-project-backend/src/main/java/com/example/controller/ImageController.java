@@ -34,7 +34,7 @@ public class ImageController {
             return RestBean.success(url);
         }else {
             response.setStatus(400);
-            return RestBean.failure(400,"头像上传失败");
+            return RestBean.failure(400,"图片上传失败，请联系管理员！");
         }
     }
 

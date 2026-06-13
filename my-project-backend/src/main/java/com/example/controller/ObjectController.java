@@ -36,7 +36,6 @@ public class ObjectController {
             try {
                 service.fetchImageFromMinio(stream, imagePath);
                 response.setHeader("Cache-Control", "max-age=2592000");// 缓存30天
-
             } catch (ErrorResponseException e) {
                 // 获取 MinIO 的错误代码（字符串）
                 String errorCode = e.errorResponse().code();
