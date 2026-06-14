@@ -59,7 +59,7 @@ function submitTopic(){
     return
   }
   post('/api/forum/create-topic', {
-    type: editor.type.id,
+    type: editor.type.id, //发帖请求体的 type绑定的是整个item对象，所以用id拿出来
     title: editor.title,
     content: editor.text
   },()=>{
