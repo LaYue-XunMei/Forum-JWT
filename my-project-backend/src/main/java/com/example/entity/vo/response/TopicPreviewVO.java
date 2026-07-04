@@ -14,6 +14,7 @@ public class TopicPreviewVO {
     String text;
     List<String> images;
     Date time;
+
     Integer uid;
     String username;
     String avatar;

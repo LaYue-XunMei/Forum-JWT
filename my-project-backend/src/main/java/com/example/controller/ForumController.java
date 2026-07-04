@@ -4,6 +4,7 @@ package com.example.controller;
 import com.example.entity.RestBean;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.response.TopicPreviewVO;
+import com.example.entity.vo.response.TopicTopVO;
 import com.example.entity.vo.response.TopicTypeVO;
 import com.example.entity.vo.response.WeatherVO;
 import com.example.service.TopicService;
@@ -56,11 +57,17 @@ public class ForumController {
     }
 
 
-//    @GetMapping("/list-topic")
-//    public RestBean<TopicPreviewVO> listTopic(@RequestParam @Min(0) int page,
-//                                              @RequestParam @Min(0) int type){//最低为0，表示所有主题
-//
-//    }
+    @GetMapping("/list-topic")
+    public RestBean<List<TopicPreviewVO>> listTopic(@RequestParam @Min(0) int page,//0表示第一页
+                                                    @RequestParam @Min(0) int type){//最低为0，表示所有主题
+
+        return RestBean.success(topicService.listTopicByPage(page,type));
+    }
+
+    @GetMapping("/top-topic")
+    public RestBean<List<TopicTopVO>> topTopic(){
+        return RestBean.success(topicService.listTopTopics());
+    }
 
 
 

@@ -9,19 +9,19 @@ import axios from "axios";
 import {get, post, accessHeader} from "@/net/index.js";
 import {ElMessage} from "element-plus";
 import ColorDot from "@/components/ColorDot.vue";
+import {userStore} from "@/store";
 
 defineProps({
   show: Boolean
 })
-
+const store = userStore();
 const emits = defineEmits(["close","success"])
 
 const editor = reactive({
   type: null,
   title: "",
   text: "",
-  loading:false,
-  types : []
+  loading:false
 })
 
 const refEditor =ref()
@@ -41,8 +41,6 @@ function deltaToText(delta){
 }
 
 const contentLength = computed(()=>deltaToText(editor.text).length)
-
-get('/api/forum/types',data =>editor.types = data)
 
 function submitTopic(){
   const text = deltaToText(editor.text)
@@ -141,8 +139,8 @@ const editorOption = {
       </template>
       <div style="display: flex;gap: 10px">
         <div style="width: 150px">
-          <el-select placeholder="请选择主题类型..." value-key="id" v-model="editor.type"  :disabled="!editor.types.length">
-            <el-option v-for ="item in editor.types" :value="item" :label="item.name">
+          <el-select placeholder="请选择主题类型..." value-key="id" v-model="editor.type"  :disabled="!store.forum.types.length">
+            <el-option v-for ="item in store.forum.types" :value="item" :label="item.name">
               <div>
                 <color-dot :color="item.color"/>
                 <span style="margin-left: 5px">{{item.name}}</span>

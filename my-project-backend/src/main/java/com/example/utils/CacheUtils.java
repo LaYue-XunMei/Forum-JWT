@@ -18,10 +18,11 @@ public class CacheUtils {
     @Resource
     StringRedisTemplate template;
 
+    //存普通对象
     public <T> void saveToCache(String key, T data, long expireTime){
         template.opsForValue().set(key, JSONObject.from(data).toJSONString(),expireTime, TimeUnit.SECONDS);
     }
-
+    //存List
     public <T> void saveListToCache(String key, List<T> list, long expireTime){
         template.opsForValue().set(key, JSONArray.from(list).toJSONString(),expireTime, TimeUnit.SECONDS);
     }

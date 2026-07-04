@@ -1,10 +1,14 @@
 package com.example.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.Topic;
 import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.response.TopicPreviewVO;
+import com.example.entity.vo.response.TopicTopVO;
 import com.example.mapper.TopicMapper;
 import com.example.mapper.TopicTypeMapper;
 import com.example.service.TopicService;
@@ -16,9 +20,7 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +71,56 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         }
     }
 
+    @Override
+    public List<TopicPreviewVO> listTopicByPage(int page, int type) {//规定一页10个帖子
+        String key = Const.FORUM_TOPIC_PREVIEW_CACHE + page+ ":" + type;
+        List<TopicPreviewVO> list = cacheUtils.takeListFromCache(key,TopicPreviewVO.class);
+        if(list != null) return list;//不为空，直接从缓存中取
+
+        List<Topic> topics;
+        if(type==0)//0表示所以主题
+            topics = baseMapper.topicList(page*10);
+        else
+            topics = baseMapper.topicListByType(page*10,type);
+        if(topics.isEmpty()) return null;
+        list = topics.stream().map(this::resolveToPreview).toList();
+        //缓存
+        cacheUtils.saveListToCache(key,list,60);
+        return list;
+    }
+
+    @Override
+    public List<TopicTopVO> listTopTopics() {
+        List<Topic> topics = baseMapper.selectList(Wrappers.<Topic>query()
+                .select("id","title","time")
+                .eq("top",1));
+        return topics.stream().map(topic -> {
+            TopicTopVO vo = new TopicTopVO();
+            BeanUtils.copyProperties(topic,vo);
+            return vo;
+        }).toList();
+    }
+
+    private TopicPreviewVO resolveToPreview(Topic topic) {
+        TopicPreviewVO vo = new TopicPreviewVO();
+        BeanUtils.copyProperties(topic,vo);
+        List<String> images = new ArrayList<>();
+        StringBuilder previewText = new StringBuilder();
+        JSONArray ops = JSONObject.parseObject(topic.getContent()).getJSONArray("ops");
+        for(Object op : ops) {
+            Object insert = JSONObject.from(op).get("insert");
+            if(insert instanceof String text){
+                if(previewText.length() >= 300 ) continue;//预览只拿300字
+                previewText.append(text);
+            }else if(insert instanceof Map<?,?> map){
+                Optional.ofNullable(map.get("image"))
+                        .ifPresent(obj ->images.add(obj.toString()));
+            }
+        }
+        vo.setText(previewText.length() > 300 ? previewText.substring(0,300) : previewText.toString());
+        vo.setImages(images);
+        return vo;
+    }
 
 
     private boolean textLimitCheck(JSONObject content) {

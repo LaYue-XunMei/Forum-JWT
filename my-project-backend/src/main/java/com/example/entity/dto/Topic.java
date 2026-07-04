@@ -20,9 +20,9 @@ public class Topic implements BaseData {
     String title;
     String content;
     Integer type;
+    Integer uid;
     Date time;
 
-    Integer uid;
-    //String username;
-    //String avatar;
+    String username;
+    String avatar;
 }
