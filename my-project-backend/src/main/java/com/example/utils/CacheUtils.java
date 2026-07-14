@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -44,6 +44,11 @@ public class CacheUtils {
             return null; // 或者返回 Collections.emptyList()
         }
         return JSONObject.parseObject(value).to(dataType);
+    }
+
+    public void deleteCachePattern(String key){//删除缓存/
+        Set<String> keys = Optional.ofNullable(template.keys(key)).orElse(Collections.emptySet());
+        template.delete(keys);
     }
 
     public void deleteCache(String key){//删除缓存/

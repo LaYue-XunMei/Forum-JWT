@@ -22,7 +22,4 @@ public class Topic implements BaseData {
     Integer type;
     Integer uid;
     Date time;
-
-    String username;
-    String avatar;
 }

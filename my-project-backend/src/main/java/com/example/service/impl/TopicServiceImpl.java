@@ -3,14 +3,14 @@ package com.example.service.impl;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.entity.dto.Topic;
-import com.example.entity.dto.TopicType;
+import com.example.entity.dto.*;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
 import com.example.entity.vo.response.TopicTopVO;
-import com.example.mapper.TopicMapper;
-import com.example.mapper.TopicTypeMapper;
+import com.example.mapper.*;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
@@ -34,6 +34,15 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
     @Resource
     CacheUtils cacheUtils;
+
+    @Resource
+    AccountMapper accountMapper;
+
+    @Resource
+    AccountDetailsMapper accountDetailsMapper;
+
+    @Resource
+    AccountPrivacyMapper accountPrivacyMapper;
 
     @Override
     public List<TopicType> listTypes() {
@@ -64,7 +73,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         topic.setContent(vo.getContent().toJSONString());//发过来的是JSON格式，转换一下
         topic.setTime(new Date());
         if(this.save(topic)){
-            cacheUtils.deleteCache(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//发帖后，帖子缓存清空
+            cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//发帖后，帖子缓存清空
             return null;
         }else {
             return "内部错误，请联系管理员。";
@@ -72,16 +81,17 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
     }
 
     @Override
-    public List<TopicPreviewVO> listTopicByPage(int page, int type) {//规定一页10个帖子
-        String key = Const.FORUM_TOPIC_PREVIEW_CACHE + page+ ":" + type;
+    public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {//规定一页10个帖子
+        String key = Const.FORUM_TOPIC_PREVIEW_CACHE + pageNumber+ ":" + type;
         List<TopicPreviewVO> list = cacheUtils.takeListFromCache(key,TopicPreviewVO.class);
         if(list != null) return list;//不为空，直接从缓存中取
 
-        List<Topic> topics;
+        Page<Topic> page = Page.of(pageNumber, 10);//10个一页
         if(type==0)//0表示所以主题
-            topics = baseMapper.topicList(page*10);
+            baseMapper.selectPage(page,Wrappers.<Topic>query().orderByDesc("time"));
         else
-            topics = baseMapper.topicListByType(page*10,type);
+            baseMapper.selectPage(page,Wrappers.<Topic>query().eq("type",type).orderByDesc("time"));
+        List<Topic> topics = page.getRecords();//现在拿到的topic里面没有用户信息
         if(topics.isEmpty()) return null;
         list = topics.stream().map(this::resolveToPreview).toList();
         //缓存
@@ -101,8 +111,30 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         }).toList();
     }
 
+    @Override
+    public TopicDetailVO getTopic(int tid) {
+        TopicDetailVO vo = new TopicDetailVO();
+        Topic topic = baseMapper.selectById(tid);
+        BeanUtils.copyProperties(topic,vo);//先把帖子信息拷贝过去
+        //还要给用户数据
+        TopicDetailVO.User user = new TopicDetailVO.User();
+        vo.setUser(this.fillUserDetailByPrivacy(user,topic.getUid()));
+        return vo;
+    }
+    //由于有隐私设置，单独写个方法
+    private <T> T fillUserDetailByPrivacy(T target,int uid){
+        AccountDetails details = accountDetailsMapper.selectById(uid);
+        Account account = accountMapper.selectById(uid);
+        AccountPrivacy accountPrivacy = accountPrivacyMapper.selectById(uid);
+        //通过accountPrivacy判断哪些信息可以返回，哪些需要隐藏
+        String[] ignores = accountPrivacy.hiddenFields();
+        BeanUtils.copyProperties(account,target,ignores);
+        BeanUtils.copyProperties(details,target,ignores);
+        return target;
+    }
     private TopicPreviewVO resolveToPreview(Topic topic) {
         TopicPreviewVO vo = new TopicPreviewVO();
+        BeanUtils.copyProperties(accountMapper.selectById(topic.getUid()),vo);//单独查询一次，将用户信息与原来的帖子信息分开
         BeanUtils.copyProperties(topic,vo);
         List<String> images = new ArrayList<>();
         StringBuilder previewText = new StringBuilder();
