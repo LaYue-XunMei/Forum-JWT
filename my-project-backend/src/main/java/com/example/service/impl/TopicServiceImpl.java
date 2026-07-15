@@ -18,9 +18,13 @@ import com.example.utils.FlowUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +47,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
     @Resource
     AccountPrivacyMapper accountPrivacyMapper;
+
+    @Resource
+    StringRedisTemplate template;
 
     @Override
     public List<TopicType> listTypes() {
@@ -121,6 +128,56 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         vo.setUser(this.fillUserDetailByPrivacy(user,topic.getUid()));
         return vo;
     }
+    /**
+     * 由于论坛交互数据（如点赞、收藏）更新可能非常频繁
+     * 更新信息实时到MySQL不太现实，所以用Redis做缓冲并在合适的时机一次性入库一段时间内的全部数据
+     * 当数据更新到来时，创建一个新的定时任务，此任务在一段时间后执行
+     * 将全部Redis暂时缓存信息一次性加入到数据库，如果
+     * 在定时任务已经设定期间又有新的更新到来，则仅仅更新Redis不创建新的延时任务
+     */
+    @Override
+    public void interact(Interact interact, boolean state) {
+        String type = interact.getType();
+        synchronized (type.intern()){
+            template.opsForHash().put(type,interact.toKey(),Boolean.toString(state));
+            this.saveInteractSchedule(type);
+        }
+    }
+
+    //定时任务
+    private final Map<String,Boolean> state = new HashMap<>();//判断任务是否开始计时
+    ScheduledExecutorService service = Executors.newScheduledThreadPool(2);
+    private void saveInteractSchedule(String type) {
+        if(!state.getOrDefault(type,false)) {
+            state.put(type,true);//任务开始
+            service.schedule(()->{
+                try {
+                    this.saveInteract(type);
+                } finally {
+                    state.put(type,false);
+                }
+            },3, TimeUnit.SECONDS);
+        };
+    }
+
+    private void saveInteract(String type){
+        synchronized (type.intern()){
+            List<Interact> check = new LinkedList<>();//选中
+            List<Interact> unCheck = new LinkedList<>();//取消选中
+            template.opsForHash().entries(type).forEach((k, v)->{//根据type拿到哈希表
+                if(Boolean.parseBoolean(v.toString()))
+                    check.add(Interact.parseInteract(k.toString(),type));
+                else
+                    unCheck.add(Interact.parseInteract(k.toString(),type));
+            });
+            if(!check.isEmpty())
+                baseMapper.addInteract(check,type);
+            if(!unCheck.isEmpty())
+                baseMapper.deleteInteract(unCheck,type);//批量删除
+            template.delete(type);//清楚，等待下一轮操作
+        }
+    }
+
     //由于有隐私设置，单独写个方法
     private <T> T fillUserDetailByPrivacy(T target,int uid){
         AccountDetails details = accountDetailsMapper.selectById(uid);
