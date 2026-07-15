@@ -87,6 +87,18 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         }
     }
 
+    public List<TopicPreviewVO> listTopicCollects(int uid) {
+        return baseMapper.collectTopics(uid)
+                .stream()
+                .map(topic ->{
+                    TopicPreviewVO vo = new TopicPreviewVO();
+                    BeanUtils.copyProperties(topic,vo);
+                    return vo;
+                })
+                .toList();
+
+    }
+
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {//规定一页10个帖子
         String key = Const.FORUM_TOPIC_PREVIEW_CACHE + pageNumber+ ":" + type;
@@ -123,6 +135,11 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         TopicDetailVO vo = new TopicDetailVO();
         Topic topic = baseMapper.selectById(tid);
         BeanUtils.copyProperties(topic,vo);//先把帖子信息拷贝过去
+        TopicDetailVO.Interact interact = new TopicDetailVO.Interact(
+                hasInteract(tid,topic.getUid(),"like"),
+                hasInteract(tid,topic.getUid(),"collect")
+        );
+        vo.setInteract(interact);//返回互动情况
         //还要给用户数据
         TopicDetailVO.User user = new TopicDetailVO.User();
         vo.setUser(this.fillUserDetailByPrivacy(user,topic.getUid()));
@@ -142,6 +159,15 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
             template.opsForHash().put(type,interact.toKey(),Boolean.toString(state));
             this.saveInteractSchedule(type);
         }
+    }
+
+    //先检查缓存里面有没有，没有再查数据库
+    private boolean hasInteract(int tid, int uid,String type){
+        String key = tid + ":" + uid;
+        if(template.opsForHash().hasKey(type,key)){
+            return Boolean.parseBoolean(template.opsForHash().entries(type).get(key).toString());
+        }
+        return baseMapper.userInteractCount(tid,uid,type) > 0;//大于0说明当前用户已交互（点赞或收藏）
     }
 
     //定时任务
@@ -193,6 +219,10 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         TopicPreviewVO vo = new TopicPreviewVO();
         BeanUtils.copyProperties(accountMapper.selectById(topic.getUid()),vo);//单独查询一次，将用户信息与原来的帖子信息分开
         BeanUtils.copyProperties(topic,vo);
+        //返回点赞收藏数
+        vo.setLike(baseMapper.interactCount(topic.getId(), "like"));
+        vo.setCollect(baseMapper.interactCount(topic.getId(), "collect"));
+
         List<String> images = new ArrayList<>();
         StringBuilder previewText = new StringBuilder();
         JSONArray ops = JSONObject.parseObject(topic.getContent()).getJSONArray("ops");

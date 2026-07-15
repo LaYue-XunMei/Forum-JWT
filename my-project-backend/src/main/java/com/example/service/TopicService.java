@@ -24,6 +24,8 @@ public interface TopicService extends IService<Topic> {
 
     void interact(Interact interact,boolean state);
 
+    List<TopicPreviewVO> listTopicCollects(int uid);
+
 
 
 

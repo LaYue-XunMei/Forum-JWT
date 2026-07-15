@@ -18,4 +18,7 @@ public class TopicPreviewVO {
     Integer uid;
     String username;
     String avatar;
+
+    int like;
+    int collect;
 }
