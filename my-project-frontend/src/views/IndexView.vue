@@ -1,7 +1,7 @@
 <script setup>
 import {logout,get} from "@/net";
 import router from "@/router/index.js";
-import {userStore} from "@/store/index.js";
+import {useStore} from "@/store/index.js";
 import {computed, reactive, ref} from "vue";
 import {
   Back,
@@ -17,7 +17,7 @@ import {
 import {useRoute} from "vue-router";
 
 const route = useRoute()
-const store = userStore()
+const store = useStore()
 const loading = ref(true)
 
 const searchInput =  reactive({

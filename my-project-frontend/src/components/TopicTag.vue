@@ -1,7 +1,7 @@
 <script setup>
-import {userStore} from "@/store";
+import {useStore} from "@/store";
 
-const store = userStore();
+const store = useStore();
 
 defineProps({
   type:Number

@@ -1,6 +1,6 @@
 <script setup>
 import {computed, reactive, ref} from "vue";
-import {Quill, QuillEditor} from "@vueup/vue-quill";
+import {Delta, Quill, QuillEditor} from "@vueup/vue-quill";
 import ImageResize from 'quill-image-resize-vue';
 import {ImageExtend, QuillWatch} from  "quill-image-super-solution-module"
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -9,12 +9,42 @@ import axios from "axios";
 import {get, post, accessHeader} from "@/net/index.js";
 import {ElMessage} from "element-plus";
 import ColorDot from "@/components/ColorDot.vue";
-import {userStore} from "@/store";
+import {useStore} from "@/store";
 
-defineProps({
-  show: Boolean
+const props = defineProps({
+  show: Boolean,
+  defaultTitle:{
+    default: '',
+    type:String
+  },
+  defaultText:{
+    default: '',
+    type:String
+  },
+  defaultType:{
+    default: null,
+    type:Number
+  },
+  submitButton:{
+    default: '立即发表主题',
+    type:String
+  },
+  submit:{
+    default:(editor,success)=>{
+      post('/api/forum/create-topic', {
+        type: editor.type.id,//发帖请求体的 type绑定的是整个item对象，所以用id拿出来
+        title: editor.title,
+        content: editor.text
+      },()=>{
+        ElMessage.success("帖子发表成功")
+        success()
+      })
+    },
+    type: Function
+  }
+
 })
-const store = userStore();
+const store = useStore();
 const emits = defineEmits(["close","success"])
 
 const editor = reactive({
@@ -27,9 +57,13 @@ const editor = reactive({
 const refEditor =ref()
 
 function initEditor(){
-  refEditor.value.setContents('','user')
-  editor.title = ""
-  editor.type = null
+  if(props.defaultText)
+    editor.text = new Delta(JSON.parse(props.defaultText))
+  else
+    refEditor.value.setContents('','user')
+
+  editor.title = props.defaultTitle
+  editor.type = findTypeById(props.defaultType)
 }
 
 function deltaToText(delta){
@@ -41,6 +75,13 @@ function deltaToText(delta){
 }
 
 const contentLength = computed(()=>deltaToText(editor.text).length)
+
+function findTypeById(id){
+  for(let type of store.forum.types){
+    if(type.id === id)
+      return type
+  }
+}
 
 function submitTopic(){
   const text = deltaToText(editor.text)
@@ -56,15 +97,7 @@ function submitTopic(){
     ElMessage.error("帖子类型不能为空，请选择一个类型分区发布")
     return
   }
-  post('/api/forum/create-topic', {
-    type: editor.type.id, //发帖请求体的 type绑定的是整个item对象，所以用id拿出来
-    title: editor.title,
-    content: editor.text
-  },()=>{
-    ElMessage.success("帖子发表成功")
-    emits('success')
-  })
-
+  props.submit(editor,()=> emits('success'))
 }
 
 Quill.register('modules/imageResize', ImageResize);
@@ -173,7 +206,7 @@ const editorOption = {
       <div style="display: flex;justify-content: space-between;margin-top: 10px">
         <div style="font-size: 13px;color: grey">当前字数 {{contentLength}} || 最大支持 10000</div>
         <div>
-          <el-button @click="submitTopic" type="success" :icon="Check" plain>立即发表帖子</el-button>
+          <el-button @click="submitTopic" type="success" :icon="Check" plain>{{submitButton}}</el-button>
         </div>
       </div>
 

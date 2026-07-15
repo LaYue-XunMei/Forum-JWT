@@ -1,13 +1,13 @@
 <script setup>
 import card from "@/components/Card.vue";
 import {Message, Notebook, Refresh, Select, User} from "@element-plus/icons-vue"
-import {userStore} from "@/store/index.js";
+import {useStore} from "@/store/index.js";
 import {computed, reactive, ref} from "vue";
 import {ElMessage} from "element-plus";
 import {post, get, accessHeader} from "@/net"
 import axios from "axios";
 
-const store = userStore()
+const store = useStore()
 
 const registerTime = computed(()=> new Date(store.user.registerTime).toLocaleString())
 

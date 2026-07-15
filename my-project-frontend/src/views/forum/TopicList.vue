@@ -21,14 +21,14 @@ import {ElMessage} from "element-plus";
 
 import {get,post} from "@/net/index.js";
 import TopicEditor from "@/components/TopicEditor.vue";
-import {userStore} from "@/store";
+import {useStore} from "@/store";
 import axios from "axios";
 import ColorDot from "@/components/ColorDot.vue";
 import router from "@/router";
 import TopicTag from "@/components/TopicTag.vue";
 import TopicCollectList from "@/components/TopicCollectList.vue";
 
-const store = userStore();
+const store = useStore();
 
 const today = computed(()=>{
   const date = new Date()

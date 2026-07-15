@@ -6,6 +6,7 @@ import java.util.Date;
 
 @Data
 public class AccountVO {
+    int id;
     String username;//用户名
     String email;//邮箱
     String role;//角色

@@ -1,10 +1,10 @@
 <script setup>
 
 import {get} from "@/net";
-import {userStore} from "@/store";
+import {useStore} from "@/store";
 
 
-const store = userStore();
+const store = useStore();
 
 get('/api/forum/types',data =>{
   const array = []
