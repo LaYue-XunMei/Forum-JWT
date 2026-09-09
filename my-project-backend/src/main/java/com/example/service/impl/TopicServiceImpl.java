@@ -14,6 +14,7 @@ import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
 import com.example.entity.vo.response.TopicTopVO;
 import com.example.mapper.*;
+import com.example.service.NotificationService;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
@@ -57,6 +58,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
     @Resource
     StringRedisTemplate template;
+
+    @Resource
+    NotificationService notificationService;
 
     @Override
     public List<TopicType> listTypes() {
@@ -121,6 +125,30 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         BeanUtils.copyProperties(vo,comment);
         comment.setTime(new Date());
         topicCommentMapper.insert(comment);
+        //给被评论方发消息提醒
+        Topic topic = baseMapper.selectById(vo.getTid());
+        Account account = accountMapper.selectById(uid);
+        if(vo.getQuote()>0){//回复的是评论
+            TopicComment com = topicCommentMapper.selectById(vo.getQuote());
+            if(!Objects.equals(account.getId(),com.getUid())){//如果不是自己回复的就要通知
+                notificationService.addNotification(
+                        com.getUid(),
+                        "您有新的帖子评论回复",
+                        account.getUsername()+"回复了你的评论，去看看吧！",
+                        "success",
+                        "/index/topic-detail/"+com.getTid()
+                );
+            }
+
+        }else if(!Objects.equals(account.getId(),topic.getUid())){
+            notificationService.addNotification(
+                    topic.getUid(),
+                    "您的帖子有了评论",
+                    account.getUsername()+"回复了你的帖子："+topic.getUid()+"，去看看吧！",
+                    "success",
+                    "/index/topic-detail/"+topic.getId()
+            );
+        }
         return null;
     }
 

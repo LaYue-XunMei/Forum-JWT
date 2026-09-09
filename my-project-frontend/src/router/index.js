@@ -56,6 +56,14 @@ const router = createRouter({
                     component:()=>import('@/views/settings/PrivacySetting.vue')
                 }
             ]
+        },
+        {
+            path: '/admin',
+            name: 'admin',
+            component:()=>import('@/views/AdminView.vue'),
+            children:[
+
+            ]
         }
     ]
 })
