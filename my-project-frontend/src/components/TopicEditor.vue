@@ -10,6 +10,7 @@ import {get, post, accessHeader} from "@/net/index.js";
 import {ElMessage} from "element-plus";
 import ColorDot from "@/components/ColorDot.vue";
 import {useStore} from "@/store";
+import {apiForumTopicCreate} from "@/net/api/forum";
 
 const props = defineProps({
   show: Boolean,
@@ -31,7 +32,7 @@ const props = defineProps({
   },
   submit:{
     default:(editor,success)=>{
-      post('/api/forum/create-topic', {
+      apiForumTopicCreate({
         type: editor.type.id,//发帖请求体的 type绑定的是整个item对象，所以用id拿出来
         title: editor.title,
         content: editor.text
@@ -157,62 +158,59 @@ const editorOption = {
 </script>
 
 <template>
-  <div>
-    <el-drawer :model-value="show"
-               direction="btt"
-               @open="initEditor"
-               :close-on-click-modal="false"
-               :size="700"
-               @close="emits('close')">
-      <template #header>
-        <div>
-          <div style="font-weight: bold">发表新的帖子</div>
-          <div style="font-size: 13px">发表帖子请遵守相关规定</div>
-        </div>
-      </template>
-      <div style="display: flex;gap: 10px">
-        <div style="width: 150px">
-          <el-select placeholder="请选择主题类型..." value-key="id" v-model="editor.type"  :disabled="!store.forum.types.length">
-            <el-option v-for ="item in store.forum.types.filter(type => type.id > 0)" :value="item" :label="item.name">
-              <div>
-                <color-dot :color="item.color"/>
-                <span style="margin-left: 5px">{{item.name}}</span>
-              </div>
-            </el-option>
-          </el-select>
-
-        </div>
-        <div style="flex:1">
-          <el-input v-model="editor.title"
-                    placeholder="请输入帖子标题..."
-                    :prefix-icon="Document"
-                    maxlength="30"/>
-        </div>
+  <el-drawer :model-value="show"
+             direction="btt"
+             @open="initEditor"
+             :close-on-click-modal="false"
+             :size="700"
+             @close="emits('close')">
+    <template #header>
+      <div>
+        <div style="font-weight: bold">发表新的帖子</div>
+        <div style="font-size: 13px">发表帖子请遵守相关规定</div>
       </div>
-      <div style="margin-top: 5px;font-size: 13px;color: grey">
-        <color-dot :color="editor.type ? editor.type.color : '#dedede'"/>
-        <span style="margin-left: 5px">{{editor.type ? editor.type.desc : '请在上方选择一个帖子类型'}}</span>
-      </div>
+    </template>
+    <div style="display: flex;gap: 10px">
+      <div style="width: 150px">
+        <el-select placeholder="请选择主题类型..." value-key="id" v-model="editor.type"  :disabled="!store.forum.types.length">
+          <el-option v-for ="item in store.forum.types.filter(type => type.id > 0)" :value="item" :label="item.name">
+            <div>
+              <color-dot :color="item.color"/>
+              <span style="margin-left: 5px">{{item.name}}</span>
+            </div>
+          </el-option>
+        </el-select>
 
-      <div style="margin-top: 10px;height: 450px;overflow: hidden;border-radius: 5px"
-           v-loading="editor.loading"
-           element-loading-text="正在上传图片，请稍后...">
-        <quill-editor v-model:content="editor.text" style="height: calc(100% - 45px)"
-                      placeholder="请输入帖子内容..."
-                      content-type="delta" ref="refEditor"
-                      :options="editorOption">
-        </quill-editor>
       </div>
-      <div style="display: flex;justify-content: space-between;margin-top: 10px">
-        <div style="font-size: 13px;color: grey">当前字数 {{contentLength}} || 最大支持 10000</div>
-        <div>
-          <el-button @click="submitTopic" type="success" :icon="Check" plain>{{submitButton}}</el-button>
-        </div>
+      <div style="flex:1">
+        <el-input v-model="editor.title"
+                  placeholder="请输入帖子标题..."
+                  :prefix-icon="Document"
+                  maxlength="30"/>
       </div>
+    </div>
+    <div style="margin-top: 5px;font-size: 13px;color: grey">
+      <color-dot :color="editor.type ? editor.type.color : '#dedede'"/>
+      <span style="margin-left: 5px">{{editor.type ? editor.type.desc : '请在上方选择一个帖子类型'}}</span>
+    </div>
 
-    </el-drawer>
-  </div>
+    <div style="margin-top: 10px;height: 450px;overflow: hidden;border-radius: 5px"
+         v-loading="editor.loading"
+         element-loading-text="正在上传图片，请稍后...">
+      <quill-editor v-model:content="editor.text" style="height: calc(100% - 45px)"
+                    placeholder="请输入帖子内容..."
+                    content-type="delta" ref="refEditor"
+                    :options="editorOption">
+      </quill-editor>
+    </div>
+    <div style="display: flex;justify-content: space-between;margin-top: 10px">
+      <div style="font-size: 13px;color: grey">当前字数 {{contentLength}} || 最大支持 10000</div>
+      <div>
+        <el-button @click="submitTopic" type="success" :icon="Check" plain>{{submitButton}}</el-button>
+      </div>
+    </div>
 
+  </el-drawer>
 </template>
 
 <style scoped>

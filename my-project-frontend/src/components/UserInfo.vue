@@ -1,18 +1,46 @@
 <script setup>
 
-import {Back, Message, Operation} from "@element-plus/icons-vue";
+import {Back, Message, Operation, Right} from "@element-plus/icons-vue";
 import {useStore} from "@/store";
-import {logout} from "@/net";
+import {isRoleAdmin, logout} from "@/net";
 import router from "@/router";
+import {computed} from "vue";
+import {useRoute} from "vue-router";
 
+const route = useRoute()
 const store = useStore()
+const isAdminPage = computed(()=>route.fullPath.startsWith("/admin"))
+
+
 function userLogout(){
   logout(()=> router.push("/"))
 }
+
+
+
 </script>
 
 <template>
   <div class="user-info">
+    <template v-if="isRoleAdmin()">
+      <el-button type="primary" size="small"
+                 @click="router.push('/index')"
+                 v-if="isAdminPage">
+        回到用户端
+        <el-icon style="margin-left: 5px">
+          <Right/>
+        </el-icon>
+      </el-button>
+      <el-button type="danger" size="small"
+                 @click="router.push('/admin')"
+                 v-else>
+        前往管理端
+        <el-icon style="margin-left: 5px">
+          <Right/>
+        </el-icon>
+      </el-button>
+    </template>
+
     <slot/>
     <div class="profile">
       <div>{{store.user.username}}</div>
@@ -40,7 +68,9 @@ function userLogout(){
 
 <style scoped>
 .user-info{
+  width: 320px;
   display: flex;
+  gap:20px;
   justify-content: flex-end;
   align-items: center;
 
@@ -50,7 +80,6 @@ function userLogout(){
 
   .profile{
     text-align: right;
-    margin-right: 20px ;
 
     :first-child{
       font-size: 18px;

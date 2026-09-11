@@ -44,9 +44,12 @@ public interface TopicMapper extends BaseMapper<Topic> {
     int userInteractCount(int tid,int uid,String type);//查看当前用户是否点赞
 
     @Select("""
-          select * from db_topic_interact_collect left join db_topic on tid = db_topic.id
+          select * from db_topic_interact_collect right join db_topic on tid = db_topic.id
           where db_topic_interact_collect.uid = #{uid}
           """)
     List<Topic> collectTopics(int uid);
+
+    @Delete("delete from db_topic_interact_collect where tid = #{tid}")
+    int deleteTopicCollect(int tid);
 
 }

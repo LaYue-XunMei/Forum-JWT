@@ -15,7 +15,7 @@ import {
 import UserInfo from "@/components/UserInfo.vue";
 import {get} from "@/net";
 import {useStore} from "@/store";
-import {ref} from "vue";
+import {inject, ref} from "vue";
 
 const adminMenu = [
   {
@@ -29,22 +29,16 @@ const adminMenu = [
     ]
   }, {
     title:'探索与发现管理',icon:Location,sub:[
-      {title:'成绩管理',icon:User},
-      {title:'课程表管理',icon:ChatDotSquare},
-      {title:'教务通知管理',icon:Bell},
-      {title:'在线图书管理',icon:Notification},
-      {title:'预约教室管理',icon:Umbrella},
+      {title:'成绩管理',icon:Document},
+      {title:'课程表管理',icon:Files},
+      {title:'教务通知管理',icon:Monitor},
+      {title:'在线图书管理',icon:Collection},
+      {title:'预约教室管理',icon:DataLine},
     ]
   }
 ]
-const store = useStore()
-const loading = ref(true)
-get("/api/user/info",(data)=>{
-  store.user = data
-  loading.value = false
-})
 
-
+const loading = inject('userLoading')
 </script>
 
 <template>
@@ -52,7 +46,10 @@ get("/api/user/info",(data)=>{
       <el-container style="height: 100%">
         <el-aside width="230px" class="admin-content-aside">
           <div class="logo-box">
-            <el-image class="logo" src="https://element-plus.org/images/element-plus-logo.svg"></el-image>
+            <div style="width:320px;height:32px">
+              <el-image class="logo" src="https://element-plus.org/images/element-plus-logo.svg"></el-image>
+            </div>
+
           </div>
           <el-scrollbar style="height: calc(100vh - 57px);">
             <el-menu

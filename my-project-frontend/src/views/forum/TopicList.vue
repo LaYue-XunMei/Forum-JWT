@@ -16,7 +16,7 @@ import {
   Link, Microphone,
   Picture, Star
 } from "@element-plus/icons-vue";
-import {computed, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import {ElMessage} from "element-plus";
 
 import {get,post} from "@/net/index.js";
@@ -27,6 +27,7 @@ import ColorDot from "@/components/ColorDot.vue";
 import router from "@/router";
 import TopicTag from "@/components/TopicTag.vue";
 import TopicCollectList from "@/components/TopicCollectList.vue";
+import {apiForumTopicList, apiForumTopTopics, apiForumWeather} from "@/net/api/forum";
 
 const store = useStore();
 
@@ -63,7 +64,6 @@ watch(() => topics.type,()=>{
 },{immediate:true})
 
 
-get('/api/forum/top-topic',data =>topics.top = data)
 
 // 切换分类或发帖成功后，从第一页重新加载当前分类
 function resetList(){
@@ -79,7 +79,7 @@ function updateList(){
   if(topics.end || topics.loading) return
   topics.loading = true
   const currentRequest = ++requestId
-  get(`api/forum/list-topic?page=${topics.page}&type=${topics.type}`, data => {
+  apiForumTopicList(topics.page,topics.type,data => {
     // 如果请求期间切换了分类，只保留最新一次列表请求的结果
     if(currentRequest !== requestId) return
     if(data){
@@ -103,8 +103,8 @@ function onTopicCreate(){
 navigator.geolocation.getCurrentPosition(position =>{
       const longitude = position.coords.longitude
       const latitude = position.coords.latitude
-      console.info(latitude,longitude)
-      get(`/api/forum/weather?longitude=${longitude}&latitude=${latitude}`,data=>{
+      //console.info(latitude,longitude)
+      apiForumWeather(latitude,longitude,data=>{
         Object.assign(weather,data)
         weather.success = true
       })
@@ -124,12 +124,11 @@ navigator.geolocation.getCurrentPosition(position =>{
         default:
           ElMessage.warning("无法获取位置信息");
       }
-
       // 使用默认位置（北京）
-      get(`/api/forum/weather?longitude=117.02191&latitude=32.553011`, data => {
-        Object.assign(weather, data);
-        weather.success = true;
-      });
+      apiForumWeather(117.02191,32.553011,data=>{
+        Object.assign(weather,data)
+        weather.success = true
+      })
     },
     {
       timeout: 10000,  // 延长到10秒
@@ -138,10 +137,13 @@ navigator.geolocation.getCurrentPosition(position =>{
     }
 )
 
+onMounted(() => {
+  apiForumTopTopics(data =>topics.top = data)
+})
 </script>
 
 <template>
-  <div style="display: flex;margin: 20px auto;gap: 20px;max-width: 1000px">
+  <div style="display: flex;margin: 20px auto;gap: 20px;max-width: 1000px;padding:0 20px">
     <div style="flex: 1">
       <light-card>
         <div class="create-topic" @click="editor=true">
@@ -183,7 +185,7 @@ navigator.geolocation.getCurrentPosition(position =>{
                           @click="router.push('/index/topic-detail/'+item.id)">
               <div style="display:flex">
                 <div>
-                  <el-avatar :size="30" :src="`${axios.defaults.baseURL}/images${item.avatar}`"/>
+                  <el-avatar :size="30" :src="store.avatarUserUrl(item.avatar)"/>
                 </div>
                 <div style="margin-left: 7px;transform: translateY(-2px)">
                   <div style="font-size: 13px;font-weight: bold">{{item.username}}</div>

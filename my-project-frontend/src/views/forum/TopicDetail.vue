@@ -1,8 +1,6 @@
 <script setup>
 
 import {useRoute} from "vue-router";
-import {get, post} from "@/net"
-import axios from "axios";
 import {computed, reactive, ref} from "vue";
 import {ArrowLeft, ChatSquare, CircleCheck, Delete, EditPen, Female, Male, Plus, Star} from "@element-plus/icons-vue";
 import {QuillDeltaToHtmlConverter} from 'quill-delta-to-html'
@@ -14,6 +12,13 @@ import {ElMessage} from "element-plus";
 import {useStore} from "@/store";
 import TopicEditor from "@/components/TopicEditor.vue";
 import TopicCommentEditor from "@/components/TopicCommentEditor.vue";
+import {
+  apiForumCommentDelete,
+  apiForumComments,
+  apiForumInteract,
+  apiForumTopic,
+  apiForumUpdateTopic
+} from "@/net/api/forum";
 
 const store = useStore()
 const route = useRoute()
@@ -33,13 +38,12 @@ const comment = reactive({
   quote:null
 
 })
-const init = () => get(`api/forum/topic?tid=${tid}`,data=>{
+const init = () => apiForumTopic(tid,data=>{
   topic.data=data
   topic.like=data.interact.like
   topic.collect=data.interact.collect
   loadComments(1)
 })
-
 init()
 
 function convertToHtml(content){
@@ -49,18 +53,12 @@ function convertToHtml(content){
 }
 
 function interact(type,message){
-  get(`/api/forum/interact?tid=${tid}&type=${type}&state=${!topic[type]}`,()=>{
-    topic[type] = !topic[type]
-    if(topic[type])
-      ElMessage.success(`${message}成功！`)
-    else
-      ElMessage.success(`已取消${message}！`)
-  })
+  apiForumInteract(tid,type,topic,message)
 }
 
 
 function updateTopic(editor){
-  post('/api/forum/update-topic',{
+  apiForumUpdateTopic({
     id: tid,
     type: editor.type.id,//发帖请求体的 type绑定的是整个item对象，所以用id拿出来
     title: editor.title,
@@ -75,7 +73,7 @@ function updateTopic(editor){
 function loadComments(page){
   topic.comments = null
   topic.page = page
-  get(`/api/forum/comments?tid=${tid}&page=${page-1}`,data=> topic.comments = data)
+  apiForumComments(tid,page-1,data => topic.comments = data)
 }
 
 function onCommentAdd(){
@@ -84,7 +82,7 @@ function onCommentAdd(){
 }
 
 function deleteComment(id){
-  get(`/api/forum/delete-comment?id=${id}`,() =>{
+  apiForumCommentDelete(id,() =>{
     ElMessage.success("评论删除成功")
     loadComments(topic.page)
   })
@@ -106,7 +104,7 @@ function deleteComment(id){
 
     <div class="topic-main">
       <div class="topic-main-left">
-        <el-avatar :src="axios.defaults.baseURL+'/images'+topic.data.user.avatar"
+        <el-avatar :src="store.avatarUserUrl(topic.data.user.avatar)"
                    :size="60"/>
         <div>
           <div style="font-size:18px;font-weight: bold">
@@ -158,7 +156,7 @@ function deleteComment(id){
       <div v-if="topic.comments">
         <div class="topic-main" style="margin-top:10px" v-for="item in topic.comments">
           <div class="topic-main-left">
-            <el-avatar :src="axios.defaults.baseURL+'/images'+item.user.avatar"
+            <el-avatar :src="store.avatarUserUrl(item.user.avatar)"
                        :size="60"/>
             <div>
               <div style="font-size:18px;font-weight: bold">

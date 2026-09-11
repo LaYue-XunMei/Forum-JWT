@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { unauthorized } from "@/net";
+import { isUnauthorized } from "@/net";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,10 +70,10 @@ const router = createRouter({
 
 //路由守卫
 router.beforeEach((to, from, next) => {
-    const isUnauthorized = unauthorized()
-    if(to.name.startsWith('welcome') && !isUnauthorized) {//如果用户已经登录，不能再访问登录页面
+    const unauthorized = isUnauthorized()
+    if(to.name.startsWith('welcome') && !unauthorized) {//如果用户已经登录，不能再访问登录页面
         next('/index')
-    } else if(to.fullPath.startsWith('/index') && isUnauthorized) {
+    } else if(to.fullPath.startsWith('/index') && unauthorized) {
         next('/')//r如果没有登录就访问index主页，则重定向到登录页面
     } else {
         next()

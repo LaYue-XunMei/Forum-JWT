@@ -4,6 +4,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import {computed, ref} from "vue";
 import {post} from "@/net";
 import {ElMessage} from "element-plus";
+import {apiForumCommentSubmit} from "@/net/api/forum";
 
 const props = defineProps({
   show:Boolean,
@@ -21,7 +22,7 @@ function submitComment(){
     ElMessage.warning("评论字数超出最大字数限制")
     return
   }
-  post('/api/forum/add-comment',{
+  apiForumCommentSubmit({
     tid:props.tid,
     quote:props.quote ? props.quote.id : -1,//这里的quote就是一条评论，返回id保存即可
     content: JSON.stringify(content.value)

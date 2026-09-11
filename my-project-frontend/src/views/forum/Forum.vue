@@ -2,11 +2,13 @@
 
 import {get} from "@/net";
 import {useStore} from "@/store";
+import {onMounted} from "vue";
+import {apiForumTypes} from "@/net/api/forum";
 
 
 const store = useStore();
 
-get('/api/forum/types',data =>{
+apiForumTypes(data =>{
   const array = []
   array.push({name: '全部', id: 0,color:'linear-gradient(45deg,red,orange,gold,green,blue'})
   data.forEach(item=>{array.push(item)})
