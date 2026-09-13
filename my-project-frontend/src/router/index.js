@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { isUnauthorized } from "@/net";
+import {isRoleAdmin, isUnauthorized} from "@/net";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,7 +62,21 @@ const router = createRouter({
             name: 'admin',
             component:()=>import('@/views/AdminView.vue'),
             children:[
-
+                {
+                    path: '',
+                    name: 'admin-welcome',
+                    component:()=>import('@/views/admin/WelcomeAdmin.vue')
+                },
+                {
+                    path: 'user',
+                    name: 'admin-user',
+                    component:()=>import('@/views/admin/UserAdmin.vue')
+                },
+                {
+                    path: 'forum',
+                    name: 'admin-forum',
+                    component:()=>import('@/views/admin/ForumAdmin.vue')
+                }
             ]
         }
     ]
@@ -70,11 +84,13 @@ const router = createRouter({
 
 //路由守卫
 router.beforeEach((to, from, next) => {
-    const unauthorized = isUnauthorized()
+    const unauthorized = isUnauthorized(), admin = isRoleAdmin();
     if(to.name.startsWith('welcome') && !unauthorized) {//如果用户已经登录，不能再访问登录页面
         next('/index')
-    } else if(to.fullPath.startsWith('/index') && unauthorized) {
-        next('/')//r如果没有登录就访问index主页，则重定向到登录页面
+    } else if(to.fullPath.startsWith('/admin') && !admin ){
+        next('/index')//如果要去管理页面并且没有管理身份，弹出去
+    }else if(to.fullPath.startsWith('/index') && unauthorized) {
+        next('/')//如果没有登录就访问index主页，则重定向到登录页面
     } else {
         next()
     }
