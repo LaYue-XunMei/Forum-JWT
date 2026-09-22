@@ -89,3 +89,5 @@ export const apiUserSave = (data, success) =>
 export const apiUserModifyPassword = (data, success) =>
     post('/api/admin/user/change-password', data, success)
 
+export const apiUSerList = (page,size,success) =>
+    get(`api/admin/user/list?page=${page}&size=${size}`, success)

@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/**", "/error").permitAll()
                         .requestMatchers("/images/**").permitAll()//element通过自己的组件获取图像，需要放行
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole(Const.ROLE_ADMIN)
                         .anyRequest().hasAnyRole(Const.ROLE_DEFAULT,Const.ROLE_ADMIN)
                 )
                 .formLogin(conf -> conf
