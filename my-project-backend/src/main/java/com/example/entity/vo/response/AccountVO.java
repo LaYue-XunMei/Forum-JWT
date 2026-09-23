@@ -12,4 +12,6 @@ public class AccountVO {
     String role;//角色
     String avatar;//头像
     Date registerTime;//注册时间
+    boolean mute;//禁言
+    boolean banned;//封禁
 }

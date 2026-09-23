@@ -44,6 +44,7 @@ spring:
     username: 'minioadmin'
     password: 'minioadmin'
   weather:
+    api-host: 'ma52qc3kwb.re.qweatherapi.com'
     key: 46d5ae9eab7e4467937b8fe11be37fbf
 logging:
   charset:

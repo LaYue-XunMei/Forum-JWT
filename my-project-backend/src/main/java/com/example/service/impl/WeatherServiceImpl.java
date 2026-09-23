@@ -29,6 +29,9 @@ public class WeatherServiceImpl implements WeatherService {
     @Value("${spring.weather.key}")
     String key;
 
+    @Value("${spring.weather.api-host}")
+    String apiHost;
+
     @Override
     public WeatherVO fetchWeather(double longitude, double latitude) {
 
@@ -38,7 +41,7 @@ public class WeatherServiceImpl implements WeatherService {
 
     private WeatherVO fetchFromCache(double longitude, double latitude) {
         JSONObject geo = this.decompressStringToJSON(restTemplate.getForObject(
-                "https://ma52qc3kwb.re.qweatherapi.com/geo/v2/city/lookup?location="+longitude+","+latitude+"&key="+key,
+                "https://" + apiHost + "/geo/v2/city/lookup?location="+longitude+","+latitude+"&key="+key,
                 byte[].class));
         if(geo == null) return null;
         JSONObject location = geo.getJSONArray("location").getJSONObject(0);//只查出一个
@@ -57,12 +60,12 @@ public class WeatherServiceImpl implements WeatherService {
         WeatherVO vo = new WeatherVO();
         vo.setLocation(location);
         JSONObject now = this.decompressStringToJSON(restTemplate.getForObject(//获取实时天气
-                "https://ma52qc3kwb.re.qweatherapi.com/v7/weather/now?location="+id+"&key="+key,
+                "https://" + apiHost + "/v7/weather/now?location="+id+"&key="+key,
                 byte[].class));
         if(now == null) return null;
         vo.setNow(now.getJSONObject("now"));
         JSONObject hourly = this.decompressStringToJSON(restTemplate.getForObject(
-                "https://ma52qc3kwb.re.qweatherapi.com/v7/weather/24h?location="+id+"&key="+key,
+                "https://" + apiHost + "/v7/weather/24h?location="+id+"&key="+key,
                 byte[].class));
         if(hourly == null) return null;
         vo.setHourly(new JSONArray(hourly.getJSONArray("hourly").stream().limit(5).toList()));//只保存5个数据

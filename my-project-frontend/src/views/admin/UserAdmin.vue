@@ -1,12 +1,16 @@
 <script setup>
 
-import {User} from "@element-plus/icons-vue";
+import {EditPen, User} from "@element-plus/icons-vue";
 import {get} from "@/net";
-import {apiUSerList} from "@/net/api/user";
-import {reactive, watchEffect} from "vue";
+import {apiUserDetailTotal, apiUSerList, apiUserSave} from "@/net/api/user";
+import {reactive, ref, watchEffect} from "vue";
 import {useStore} from "@/store";
+import {ElMessage, elPaginationKey} from "element-plus";
+import UserEditor from "@/components/UserEditor.vue";
 
 const store = useStore()
+const editorRef = ref()
+
 
 const userTable = reactive({
     page:1,
@@ -14,6 +18,21 @@ const userTable = reactive({
     total:0,
     data:[]
 })
+
+function userStatus(user){
+    if(user.mute && user.banned)
+        return '禁言中、封禁中';
+    else if(user.mute)
+        return '禁言中';
+    else if(user.banned)
+        return '封禁中';
+    else
+        return '正常';
+}
+
+
+
+
 
 watchEffect(() => apiUSerList(1,10,data =>{
     userTable.total=data.total;
@@ -49,10 +68,22 @@ watchEffect(() => apiUSerList(1,10,data =>{
                 <el-tag  v-else>普通用户</el-tag>
             </template>
         </el-table-column>
-        <el-table-column prop="email" label="电子邮件" />
-        <el-table-column label="注册时间">
+        <el-table-column prop="email" label="电子邮件" width="200" show-overflow-tooltip="true"/>
+        <el-table-column label="注册时间" show-overflow-tooltip="true">
             <template #default="{ row }">
                 {{ new Date(row.registerTime).toLocaleString() }}
+            </template>
+        </el-table-column>
+        <el-table-column width="200" label="状态">
+            <template #default="{ row }">
+                {{userStatus(row)}}
+            </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" fixed="right" width="100">
+            <template #default="{ row }">
+                <el-button type="primary" size="small" :icon="EditPen"
+                @click="editorRef.openUserEditor(row)"
+                :disabled="row.role === 'admin'">编辑</el-button>
             </template>
         </el-table-column>
 
@@ -63,12 +94,13 @@ watchEffect(() => apiUSerList(1,10,data =>{
                        v-model:page-size="userTable.size"
                        layout="total, size, prev, pager, next, jumper"/>
     </div>
+    <user-editor :userTable="userTable" ref="editorRef"/>
 
 
   </div>
 </template>
 
-<style scoped>
+<style lang="less" scoped>
 .user-admin{
     .title{
         font-weight: bold;
@@ -90,6 +122,10 @@ watchEffect(() => apiUSerList(1,10,data =>{
         margin-top:20px;
         display: flex;
         justify-content: right;
+    }
+
+    :deep(.el-drawer__header){
+        margin-bottom: 0;
     }
 
 }
