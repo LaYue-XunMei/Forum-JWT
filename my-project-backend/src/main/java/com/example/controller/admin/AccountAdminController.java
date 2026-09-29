@@ -63,8 +63,12 @@ public class AccountAdminController {
     }
 
     @PostMapping("/save")
-    public RestBean<Void> saveAccount(@RequestBody JSONObject object) {//除了用户基础信息，还会返回其他一些信息，所以用JSON
+    public RestBean<Void> saveAccount(@RequestBody JSONObject object,
+                                      @RequestAttribute(Const.ATTR_USER_ID) int uid) {//除了用户基础信息，还会返回其他一些信息，所以用JSON
         int id = object.getInteger("id");
+        if(uid == id){
+            return RestBean.failure(400,"不能修改自己账号信息");
+        }
         Account account = accountService.findAccountById(id);
         Account save = object.toJavaObject(Account.class);//自动赋值转换为对象
         handleBanned(account,save);//先处理一下封禁操作，设置封禁标记，JWT过滤器中使用
@@ -78,6 +82,14 @@ public class AccountAdminController {
         AccountPrivacy savePrivacy = object.getJSONObject("privacy").toJavaObject(AccountPrivacy.class);
         BeanUtils.copyProperties(savePrivacy,privacy);
         accountPrivacyService.saveOrUpdate(privacy);
+        return RestBean.success();
+    }
+
+    @PostMapping("/change-password")
+    public RestBean<Void> changePassword(@RequestBody JSONObject object){
+        accountService.modifyPassword(
+                object.getInteger("id"),
+                object.getString("newPassword"));
         return RestBean.success();
     }
 

@@ -10,6 +10,7 @@ import com.example.mapper.AccountDetailsMapper;
 import com.example.mapper.AccountMapper;
 import com.example.mapper.AccountPrivacyMapper;
 import com.example.service.AccountService;
+import com.example.service.EmailService;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
 import jakarta.annotation.Resource;
@@ -39,7 +40,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     int verifyLimit;
 
     @Resource
-    AmqpTemplate rabbitTemplate;
+    EmailService emailService;
 
     @Resource
     StringRedisTemplate stringRedisTemplate;
@@ -103,6 +104,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         return success ? null : "更新失败，请联系管理员";
     }
 
+    @Override
+    public void modifyPassword(int id, String newPassword) {
+        this.update()
+                .eq("id",id)
+                .set("password",passwordEncoder.encode(newPassword))
+                .update();
+    }
+
     /**
      * 生成注册验证码存入Redis中，并将邮件发送请求提交到消息队列等待发送
      * @param type 类型
@@ -116,8 +125,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                 return "请求频繁，请稍后再试";
             Random random = new Random();
             int code = random.nextInt(899999) + 100000;
-            Map<String, Object> data = Map.of("type",type,"email", email, "code", code);
-            rabbitTemplate.convertAndSend(Const.MQ_MAIL, data);
+            emailService.sendVerifyEmail(type,email,code);//使用新的邮件发送流程
             stringRedisTemplate.opsForValue()
                     .set(Const.VERIFY_EMAIL_DATA + email, String.valueOf(code), 3, TimeUnit.MINUTES);
             return null;

@@ -1,11 +1,11 @@
 <script setup>
 
-import {EditPen, User} from "@element-plus/icons-vue";
+import {EditPen, Unlock, User} from "@element-plus/icons-vue";
 import {get} from "@/net";
-import {apiUserDetailTotal, apiUSerList, apiUserSave} from "@/net/api/user";
+import {apiUserDetailTotal, apiUserList, apiUSerList, apiUserModifyPassword, apiUserSave} from "@/net/api/user";
 import {reactive, ref, watchEffect} from "vue";
 import {useStore} from "@/store";
-import {ElMessage, elPaginationKey} from "element-plus";
+import {ElMessage, ElMessageBox, elPaginationKey} from "element-plus";
 import UserEditor from "@/components/UserEditor.vue";
 
 const store = useStore()
@@ -30,7 +30,21 @@ function userStatus(user){
         return '正常';
 }
 
-
+function changePassword({id,username}){
+    ElMessageBox.prompt(`您确定要修改用户${username}的密码吗，修改后无法使用原密码登录`, '修改密码', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern:/^.{6,20}$/,
+        inputErrorMessage: '密码长度在6-20个字符之间',
+        callback: ({action,value}) =>{
+            if(action === "confirm"){
+                apiUserModifyPassword({id,newPassword:value},() =>{
+                    ElMessage.success("密码修改成功")
+                })
+            }
+        }
+    })
+}
 
 
 
@@ -79,8 +93,11 @@ watchEffect(() => apiUSerList(1,10,data =>{
                 {{userStatus(row)}}
             </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" fixed="right" width="100">
+        <el-table-column label="操作" align="center" fixed="right" width="200">
             <template #default="{ row }">
+                <el-button type="warning" size="small" :icon="Unlock"
+                           @click="changePassword(row)"
+                           :disabled="row.role === 'admin'">修改密码</el-button>
                 <el-button type="primary" size="small" :icon="EditPen"
                 @click="editorRef.openUserEditor(row)"
                 :disabled="row.role === 'admin'">编辑</el-button>

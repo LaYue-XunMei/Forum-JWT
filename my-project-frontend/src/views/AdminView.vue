@@ -1,16 +1,16 @@
 <script setup>
 
 import {
-  Bell,
-  ChatDotSquare,
-  Collection,
-  DataLine,
-  Document,
-  Files,
-  Location, Lock,
-  Monitor, Notification, Operation,
-  Position, School,
-  Umbrella, User
+    Bell,
+    ChatDotSquare,
+    Collection,
+    DataLine,
+    Document,
+    Files,
+    Location, Lock, Message,
+    Monitor, Notification, Operation,
+    Position, School,
+    Umbrella, User
 } from "@element-plus/icons-vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {get} from "@/net";
@@ -23,7 +23,8 @@ const adminMenu = [
   {
     title:'校园论坛管理',icon:Location,sub:[
       {title:'用户管理',icon:User,index:'/admin/user'},
-      {title:'帖子广场管理',icon:ChatDotSquare,index:'/admin/forum'},
+          {title: '邮件管理', icon: Message, index: '/admin/email'},
+          {title: '帖子广场管理', icon: ChatDotSquare,index:'/admin/forum'},
       {title:'失物招领管理',icon:Bell},
       {title:'校园活动管理',icon:Notification},
       {title:'表白墙管理',icon:Umbrella},

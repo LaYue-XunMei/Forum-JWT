@@ -72,7 +72,7 @@ function internalGet(url, headers, success, failure, error = defaultError){
         if(data.code === 200) {
             success(data.data)
         } else if(data.code === 401) {
-            failure('登录状态已过期，请重新登录！')
+            failure(data.message ? data.message : '登录状态已过期，请重新登录！')//data.message存在就显示，应对密码错误情况
             deleteAccessToken(true)
         } else {
             failure(data.message, data.code, url)
