@@ -84,7 +84,12 @@ public class ForumController {
 
     @GetMapping("/topic")
     public RestBean<TopicDetailVO> topic(@RequestParam @Min(0) int tid,@RequestAttribute(Const.ATTR_USER_ID) int uid) {
-        return RestBean.success(topicService.getTopic(tid,uid));
+        TopicDetailVO topic = topicService.getTopic(tid, uid);
+        if(topic != null){
+            return RestBean.success(topic);
+        } else {
+            return RestBean.failure(404,"帖子不存在或已经被屏蔽");
+        }
     }
 
     @GetMapping("/interact")//按照不同类型执行点赞或收藏,state是新操作还是取消

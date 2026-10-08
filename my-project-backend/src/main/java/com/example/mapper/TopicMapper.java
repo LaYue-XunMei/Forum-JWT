@@ -52,4 +52,6 @@ public interface TopicMapper extends BaseMapper<Topic> {
     @Delete("delete from db_topic_interact_collect where tid = #{tid}")
     int deleteTopicCollect(int tid);
 
+
+
 }

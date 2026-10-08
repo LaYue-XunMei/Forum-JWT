@@ -109,7 +109,7 @@ watchEffect(() => apiUSerList(1,10,data =>{
         <el-pagination :total="userTable.total"
                        v-model:current-page="userTable.page"
                        v-model:page-size="userTable.size"
-                       layout="total, size, prev, pager, next, jumper"/>
+                       layout="total, sizes, prev, pager, next, jumper"/>
     </div>
     <user-editor :userTable="userTable" ref="editorRef"/>
 

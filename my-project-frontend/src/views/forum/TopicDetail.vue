@@ -2,7 +2,18 @@
 
 import {useRoute} from "vue-router";
 import {computed, reactive, ref} from "vue";
-import {ArrowLeft, ChatSquare, CircleCheck, Delete, EditPen, Female, Male, Plus, Star} from "@element-plus/icons-vue";
+import {
+    ArrowLeft,
+    ChatSquare,
+    CircleCheck,
+    Delete,
+    EditPen,
+    Female,
+    Lock,
+    Male,
+    Plus,
+    Star
+} from "@element-plus/icons-vue";
 import {QuillDeltaToHtmlConverter} from 'quill-delta-to-html'
 import Card from "@/components/Card.vue";
 import router from "@/router";
@@ -96,6 +107,12 @@ function deleteComment(id){
         <el-button :icon="ArrowLeft" type="info" size="small"
                     plain round @click="router.push('/index')">返回列表</el-button>
         <div style="text-align: center;flex:1">
+          <el-tag size="small" effect="dark" type="warning" disable-transitions
+                  v-if="topic.data.locked"
+                  style="margin-right:10px ">
+              <el-icon><Lock/></el-icon>
+              已锁定
+          </el-tag>
           <topic-tag :type="topic.data.type"/>
           <span style="font-weight: bold;margin-left: 10px">{{topic.data.title}}</span>
         </div>
@@ -136,6 +153,7 @@ function deleteComment(id){
         <div style="text-align: right; margin-top: 30px">
           <interact-button name="编辑帖子"  color="dodgerblue" :check="false"
                            v-if="store.user.id === topic.data.user.id"
+                           :disabled="topic.data.locked"
                            @check="edit = true"
                            style="margin-right: 20px">
             <el-icon><EditPen/></el-icon>

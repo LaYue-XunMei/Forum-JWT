@@ -21,4 +21,7 @@ public class TopicPreviewVO {
 
     int like;
     int collect;
+    int top;//是否置顶
+    int locked;//帖子是否锁定，默认0不锁定，1为锁定
+    int invisible;//默认0表示不封禁
 }

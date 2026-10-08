@@ -16,6 +16,8 @@ public class TopicDetailVO {
     User user;
     Interact interact; //返回帖子点赞收藏情况
     Long comments; //评论数量
+    Integer locked;
+    //Integer invisible;//默认0表示不封禁
 
     @Data
     @AllArgsConstructor

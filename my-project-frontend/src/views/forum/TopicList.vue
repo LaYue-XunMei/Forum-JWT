@@ -4,17 +4,17 @@ import LightCard from "@/components/LightCard.vue";
 import Card from "@/components/Card.vue";
 import Weather from "@/components/Weather.vue";
 import {
-  ArrowRightBold,
-  Avatar,
-  Calendar, CircleCheck,
-  Clock,
-  CollectionTag,
-  Compass,
-  Document,
-  Edit,
-  EditPen, FolderOpened,
-  Link, Microphone,
-  Picture, Star
+    ArrowRightBold,
+    Avatar,
+    Calendar, CircleCheck,
+    Clock,
+    CollectionTag,
+    Compass,
+    Document,
+    Edit,
+    EditPen, FolderOpened,
+    Link, Lock, Microphone,
+    Picture, Star
 } from "@element-plus/icons-vue";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import {ElMessage} from "element-plus";
@@ -198,6 +198,12 @@ onMounted(() => {
                 </div>
               </div>
               <div>
+                <el-tag size="small" effect="dark" type="warning" disable-transitions
+                          v-if="item.locked"
+                          style="margin-right:10px">
+                      <el-icon><Lock/></el-icon>
+                    已锁定
+                </el-tag>
                 <topic-tag :type="item.type"/>
                 <span style="font-weight: bold;margin: 7px">{{item.title}}</span>
               </div>

@@ -22,4 +22,7 @@ public class Topic implements BaseData {
     Integer type;
     Integer uid;
     Date time;
+    Integer top;
+    Integer locked;
+    Integer invisible;//默认0表示不封禁
 }

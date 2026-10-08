@@ -103,14 +103,15 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         if(!textLimitCheck(vo.getContent(),20000)) return "内容过长，请重新输入。";
         if(!types.contains(vo.getType())) return "文章类型非法";
 
-        baseMapper.update(null,Wrappers.<Topic>update()
+        int result= baseMapper.update(null,Wrappers.<Topic>update()
                         .eq("uid",uid)
                         .eq("id",vo.getId())
+                        .eq("locked",0)//必须是没有被锁定的帖子才能修改
                         .set("title",vo.getTitle())
                         .set("content",vo.getContent().toString())
                         .set("type",vo.getType())
         );
-        return null;
+        return result > 0 ? null : "帖子被锁定，无法修改";
     }
 
     @Override
@@ -185,6 +186,36 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         topicCommentMapper.delete(Wrappers.<TopicComment>query().eq("id", id).eq("uid", uid));
     }
 
+    @Override
+    public void deleteTopic(int id) {
+        baseMapper.deleteById(id);
+        cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//删除后，帖子缓存清空
+        baseMapper.deleteTopicCollect(id);//删除帖子相关互动数据
+
+    }
+
+    @Override
+    public void setTopicTop(int tid, boolean top) {
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id",tid)
+                .set("top",top));
+    }
+
+    @Override
+    public void setTopicLocked(int tid, boolean locked) {
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id",tid)
+                .set("locked",locked));
+    }
+
+    @Override
+    public void setTopicInvisible(int tid, boolean invisible) {
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id",tid)
+                .set("invisible",invisible));
+        cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//屏蔽后，帖子缓存清空
+    }
+
     public List<TopicPreviewVO> listTopicCollects(int uid) {
         return baseMapper.collectTopics(uid)
                 .stream()
@@ -196,6 +227,21 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
                 .toList();
 
     }
+    /**
+     * 管理端使用的页面查询
+     * */
+    @Override
+    public JSONObject listAllTopicByPage(int page, int size) {
+        Page<Topic> topicPage = baseMapper.selectPage(Page.of(page,size),
+                Wrappers.<Topic>query()
+                        .select("id","title","uid","type","time","top","locked","invisible")
+                        .orderByDesc("time"));
+        List<TopicPreviewVO> list = topicPage.getRecords().stream().map(this::resolveToPreview).toList();
+        JSONObject object = new JSONObject();
+        object.put("list",list);
+        object.put("total",topicPage.getTotal());
+        return object;
+    }
 
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {//规定一页10个帖子
@@ -205,9 +251,13 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
         Page<Topic> page = Page.of(pageNumber, 10);//10个一页
         if(type==0)//0表示所以主题
-            baseMapper.selectPage(page,Wrappers.<Topic>query().orderByDesc("time"));
+            baseMapper.selectPage(page,Wrappers.<Topic>query()
+                    .eq("invisible",0)//返回没有被封禁的
+                    .orderByDesc("time"));
         else
-            baseMapper.selectPage(page,Wrappers.<Topic>query().eq("type",type).orderByDesc("time"));
+            baseMapper.selectPage(page,Wrappers.<Topic>query().eq("type",type)
+                    .eq("invisible",0)
+                    .orderByDesc("time"));
         List<Topic> topics = page.getRecords();//现在拿到的topic里面没有用户信息
         if(topics.isEmpty()) return null;
         list = topics.stream().map(this::resolveToPreview).toList();
@@ -232,6 +282,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
     public TopicDetailVO getTopic(int tid,int uid) {
         TopicDetailVO vo = new TopicDetailVO();
         Topic topic = baseMapper.selectById(tid);
+        if(topic.getInvisible() == 1 && topic.getUid()!= uid) {//被封禁帖子作者可以看到自己的（帖子详情页面）
+            return null;//先判断帖子是否被封禁
+        }
         BeanUtils.copyProperties(topic,vo);//先把帖子信息拷贝过去
         TopicDetailVO.Interact interact = new TopicDetailVO.Interact(
                 hasInteract(tid,uid,"like"),
@@ -324,8 +377,12 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
         List<String> images = new ArrayList<>();
         StringBuilder previewText = new StringBuilder();
-        JSONArray ops = JSONObject.parseObject(topic.getContent()).getJSONArray("ops");
-        this.shortContent(ops, previewText, obj -> images.add(obj.toString()));
+
+        if(topic.getContent() != null){//没有内容就不提取，跳过
+            JSONArray ops = JSONObject.parseObject(topic.getContent()).getJSONArray("ops");
+            this.shortContent(ops, previewText, obj -> images.add(obj.toString()));
+        }
+
         vo.setText(previewText.length() > 300 ? previewText.substring(0,300) : previewText.toString());
         vo.setImages(images);
         return vo;
