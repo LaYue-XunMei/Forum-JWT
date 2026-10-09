@@ -20,7 +20,7 @@ public interface TopicService extends IService<Topic> {
 
     String createTopic(int id, TopicCreateVO vo);
 
-    JSONObject listAllTopicByPage(int page, int size);
+    JSONObject listAllTopicByPage(int page, int size, String keyword);
     List<TopicPreviewVO> listTopicByPage(int page,int type);
 
     List<TopicTopVO> listTopTopics();

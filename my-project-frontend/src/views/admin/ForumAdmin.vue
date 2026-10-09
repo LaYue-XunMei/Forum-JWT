@@ -8,7 +8,7 @@ import {
     apiForumTopicTop,
     apiForumTypes
 } from "@/net/api/forum";
-import {User} from "@element-plus/icons-vue";
+import {Hide, Lock, Search, Top, User} from "@element-plus/icons-vue";
 import {useStore} from "@/store";
 import {ElMessage, ElMessageBox} from "element-plus";
 
@@ -19,6 +19,10 @@ const topicList = reactive({
     size:10,
     total:0
 })
+
+const keyword = ref("")
+const searchText = ref("")
+
 const types = ref([])
 const findType = type => types.value.find(item => item.id === type)
 const prohibitedWords = ref('')
@@ -63,7 +67,7 @@ const saveProhibitedWord = () =>{
 }
 
 const refreshList =() => {
-    apiForumTopicAllList(topicList.page,topicList.size,data =>{
+    apiForumTopicAllList(topicList.page,topicList.size,keyword.value, data =>{
     topicList.list = data.list;
     topicList.total = data.total;
 })
@@ -77,17 +81,44 @@ aoiForumProhibitedList(data => prohibitedWords.value = data.join(","))
 
 <template>
   <div class="forum-admin">
-      <div class="title">
-          <el-icon><User/></el-icon>
-          论坛帖子列表
-      </div>
-      <div class="desc">
-          在这里管理所有帖子，并对帖子进行各种操作
+      <div class="forum-admin-header">
+          <div>
+              <div class="title">
+                  <el-icon><User/></el-icon>
+                  论坛帖子列表
+              </div>
+              <div class="desc">
+                  在这里管理所有帖子，并对帖子进行各种操作
+              </div>
+          </div>
+          <div>
+              <el-input :prefix-icon="Search" placeholder="搜索帖子标题..."
+                        clearable @clear=" keyword = '' "
+                        @keyup.enter="keyword = searchText"
+                        v-model="searchText"/>
+          </div>
       </div>
 
       <el-table :data="topicList.list" height="400">
           <el-table-column prop="id" label="帖子ID" width="80" align="center"/>
-          <el-table-column prop="title" label="标题" width="300" show-overflow-tooltip/>
+          <el-table-column prop="title" label="标题" width="300" show-overflow-tooltip>
+              <template #default="{ row }">
+                  <el-link :href="`/index/topic-detail/${row.id}`">
+                      <div style="display: inline-flex; gap: 5px;color:dodgerblue;margin-right: 10px ">
+                          <el-icon v-if="row.locked">
+                              <Lock/>
+                          </el-icon>
+                          <el-icon v-if="row.top">
+                              <Top/>
+                          </el-icon>
+                          <el-icon v-if="row.invisible">
+                              <Hide/>
+                          </el-icon>
+                      </div>
+                      {{row.title}}
+                  </el-link>
+              </template>
+          </el-table-column>
           <el-table-column label="帖子类型" width="120">
               <template #default="{ row }">
                   <div class="topic-type">
@@ -141,6 +172,12 @@ aoiForumProhibitedList(data => prohibitedWords.value = data.join(","))
 
 <style lang="less" scoped>
 .forum-admin{
+    .forum-admin-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .title{
         font-weight: bold;
     }

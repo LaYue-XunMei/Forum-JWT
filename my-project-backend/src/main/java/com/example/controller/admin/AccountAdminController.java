@@ -1,6 +1,7 @@
 package com.example.controller.admin;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Account;
@@ -40,15 +41,23 @@ public class AccountAdminController {
     @Value("${spring.security.jwt.expire}")
     private int expire;
 
+    //可通过ID或用户名搜索
     @GetMapping("/list")
-    public RestBean<JSONObject> accountList(int page,int size) {//默认从1开始，elementUI也是从1开始
+    public RestBean<JSONObject> accountList(@RequestParam int page,
+                                            @RequestParam int size,
+                                            @RequestParam(required = false) String keyword) {//默认从1开始，elementUI也是从1开始
         JSONObject object = new JSONObject();
-        List<AccountVO> list = accountService.page(Page.of(page,size))
+        Page<Account> accountPage = accountService.page(Page.of(page, size), Wrappers.<Account>query()
+                .eq(keyword != null,"id", keyword)
+                .or()
+                .like(keyword != null,"username", "%" + keyword + "%")
+        );
+        List<AccountVO> list = accountPage
                 .getRecords()//拿到该页所有项
                 .stream()
                 .map(a -> a.asViewObject(AccountVO.class))
                 .toList();
-        object.put("total",accountService.count());
+        object.put("total",accountPage.getTotal());//只统计搜索后的总数
         object.put("list",list);
         return RestBean.success(object);
 

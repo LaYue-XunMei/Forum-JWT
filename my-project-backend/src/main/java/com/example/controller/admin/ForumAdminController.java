@@ -22,10 +22,12 @@ public class ForumAdminController {
     @Resource
     private TopicService topicService;
 
+    //兼容搜索功能
     @GetMapping("/list")
     public PageRestBean<TopicPreviewVO> list(@RequestParam int page,
-                                             @RequestParam int size) {
-        JSONObject result = topicService.listAllTopicByPage(page,size);
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String keyword) {
+        JSONObject result = topicService.listAllTopicByPage(page,size,keyword);
         return PageRestBean.success(
                 result.getJSONArray("list").toList(TopicPreviewVO.class),
                 result.getIntValue("total"),
