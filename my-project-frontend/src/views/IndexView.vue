@@ -2,15 +2,15 @@
 import router from "@/router/index.js";
 import {computed, inject, reactive, ref} from "vue";
 import {
-  Back,
-  Bell,
-  ChatDotSquare, Check, Collection, DataBoard, DataLine,
-  Document, Files,
-  Location, Lock, Message, Monitor,
-  Notification, Operation,
-  Position,
-  School, Search,
-  Umbrella, User
+    Back,
+    Bell,
+    ChatDotSquare, Check, CoffeeCup, Collection, DataBoard, DataLine,
+    Document, Files,
+    Location, Lock, Message, Monitor,
+    Notification, Operation,
+    Position,
+    School, Search,
+    Umbrella, User
 } from "@element-plus/icons-vue";
 import {useRoute} from "vue-router";
 import UserInfo from "@/components/UserInfo.vue";
@@ -42,6 +42,7 @@ const userMenu = [
   },{
   title:'个人设置',icon:Operation,sub:[
       {title:'个人信息设置',icon:User,index:'/index/user-setting'},
+      {title:'论坛帖子管理',icon:CoffeeCup,index:'/index/forum-setting'},
       {title:'账号安全设置',icon:Lock,index:'/index/privacy-setting'},
     ]
   }

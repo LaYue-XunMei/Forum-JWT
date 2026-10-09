@@ -89,4 +89,8 @@ export const apiUserSave = (data, success) =>
 export const apiUserModifyPassword = (data, success) =>
     post('/api/admin/user/change-password', data, success)
 
+export const apiForumUserTopic = (success) =>
+    get(`/api/forum/user-topic`, success)
 
+export const apiForumUserTopicDelete = (tid,success) =>
+    get(`/api/forum/delete-topic?tid=${tid}`,success)

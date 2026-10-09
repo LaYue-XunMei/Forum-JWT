@@ -209,6 +209,18 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
     }
 
     @Override
+    public void deleteTopic(int tid, int uid) {
+        int result = baseMapper.delete(Wrappers.<Topic>query()
+                .eq("id", tid)
+                .eq("uid", uid)
+        );
+        if(result > 0){
+            cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//删除后，帖子缓存清空
+            baseMapper.deleteTopicCollect(tid);//删除帖子相关互动数据
+        }
+    }
+
+    @Override
     public void setTopicTop(int tid, boolean top) {
         baseMapper.update(null,Wrappers.<Topic>update()
                 .eq("id",tid)
@@ -312,6 +324,13 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         vo.setComments(topicCommentMapper.selectCount(Wrappers.<TopicComment>query().eq("tid",tid)));
         return vo;
     }
+
+
+    @Override
+    public List<Topic> listTopicByUser(int uid) {
+        return baseMapper.selectList(Wrappers.<Topic>query().eq("uid",uid));
+    }
+
     /**
      * 由于论坛交互数据（如点赞、收藏）更新可能非常频繁
      * 更新信息实时到MySQL不太现实，所以用Redis做缓冲并在合适的时机一次性入库一段时间内的全部数据

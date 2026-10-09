@@ -39,10 +39,12 @@ public interface TopicService extends IService<Topic> {
 
     void deleteComment(int id,int uid);
     void deleteTopic(int id);
+    void deleteTopic(int tid,int uid);//用户删除自己的
     void setTopicTop(int tid, boolean top );
     void setTopicLocked(int tid, boolean locked);
     void setTopicInvisible(int tid, boolean invisible);
 
+    List<Topic> listTopicByUser(int uid);
 
 
 
