@@ -18,6 +18,7 @@ import LightCard from "@/components/LightCard.vue";
 import {apiNotificationDelete, apiNotificationDeleteAll, apiNotificationList} from "@/net/api/user";
 import {apiForumTypes} from "@/net/api/forum";
 import {useStore} from "@/store";
+import AiChatWindow from "@/components/AiChatWindow.vue";
 
 
 const store = useStore()
@@ -102,6 +103,7 @@ apiForumTypes(data => {
 
 <template>
   <div class="main-content" v-loading="loading" element-loading-text="正在进入，请稍后...">
+    <ai-chat-window/>
     <el-container style="height: 100%" v-if="!loading">
       <el-header class="main-content-header">
         <el-image class="logo" src="https://element-plus.org/images/element-plus-logo.svg"></el-image>

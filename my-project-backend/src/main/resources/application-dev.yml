@@ -52,6 +52,9 @@ spring:
   weather:
     api-host: 'ma52qc3kwb.re.qweatherapi.com'
     key: 46d5ae9eab7e4467937b8fe11be37fbf
+  ai:
+    deepseek:
+      api-key: 'sk-49d740e94d0d44fe9b1be8d4b02f0f0c'
 logging:
   charset:
     console: UTF-8
