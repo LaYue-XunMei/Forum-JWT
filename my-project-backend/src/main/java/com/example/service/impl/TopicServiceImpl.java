@@ -98,6 +98,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         topic.setUid(uid);
         topic.setContent(vo.getContent().toJSONString());//发过来的是JSON格式，转换一下
         topic.setTime(new Date());
+        topic.createIntro();//提取文本信息
         if(this.save(topic)){
             cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");//发帖后，帖子缓存清空
             return null;
@@ -122,6 +123,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
                         .set("title",vo.getTitle())
                         .set("content",vo.getContent().toString())
                         .set("type",vo.getType())
+                        .set("intro",Topic.recreateIntro(vo.getContent()))
         );
         return result > 0 ? null : "帖子被锁定，无法修改";
     }

@@ -19,6 +19,10 @@ spring:
           enabled: true
           max-attempts: 3
           initial-interval: 1000ms
+  elasticsearch:
+    uris: 192.168.5.25:9200
+    username: elastic
+    password: MyStrongPass123!
   datasource:
     url: jdbc:mysql://localhost:3306/study
     username: root
@@ -54,7 +58,8 @@ spring:
     key: 46d5ae9eab7e4467937b8fe11be37fbf
   ai:
     deepseek:
-      api-key: 'sk-49d740e94d0d44fe9b1be8d4b02f0f0c'
+      api-key: 'agent-41a05af49a270d749ab21e9e02a60b0b'
+      base-url: 'http://192.168.5.25:8099/chat/api/01a17c57-5fc1-7020-99bc-567adb3ad4f3'
 logging:
   charset:
     console: UTF-8
