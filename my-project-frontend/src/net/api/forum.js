@@ -73,3 +73,15 @@ export const apiForumProhibitedSave = (data,success) =>
 
 export const apiForumTopicSearch = (keyword,success) =>
     get(`/api/forum/search-topic?keyword=${keyword}`,success)
+
+export const apiForumTopicTypeUpdate = ( data, success) =>
+    post(`/api/admin/forum/update-type`, data,success)
+
+export const apiForumTopicTypeDelete = ( id,success) =>
+    get(`/api/admin/forum/delete-type?id=${id}`,success)
+
+export const apiForumTopicTypeCreate = (data, success) =>
+    post(`/api/admin/forum/create-type`, data,success)
+
+export const apiForumChangeTopicType = (tid, typeId, success) =>
+    get(`/api/admin/forum/change-topic-type?tid=${tid}&typeId=${typeId}`,success)

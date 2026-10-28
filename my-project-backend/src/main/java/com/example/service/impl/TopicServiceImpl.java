@@ -9,6 +9,7 @@ import com.example.entity.dto.*;
 import com.example.entity.es.TopicDocument;
 import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.request.TopicTypeCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
 import com.example.mapper.*;
@@ -74,6 +75,38 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
         return topicTypeMapper.selectList(null);
     }
 
+    @Override
+    public void updateTopicType(TopicTypeVO vo) {
+        TopicType topicType = topicTypeMapper.selectById(vo.getId());
+        BeanUtils.copyProperties(vo, topicType);
+        topicTypeMapper.updateById(topicType);
+    }
+
+    @Override
+    public void deleteTopicType(int id) {
+        TopicType topicType = topicTypeMapper.selectById(id);
+        if(topicTypeMapper.deleteById(id) > 0){
+            List<Topic> list = baseMapper.selectList(Wrappers.<Topic>query().eq("type", topicType.getId()));
+            list.forEach(topic -> deleteTopic(topic.getId()));
+        }
+    }
+
+    @Override
+    public void createTopicType(TopicTypeCreateVO vo) {
+        TopicType topicType = new TopicType();
+        BeanUtils.copyProperties(vo, topicType);
+        topicTypeMapper.insert(topicType);
+    }
+
+    @Override
+    public void changeTopicType(int tid, int typeId) {
+        if(baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id", tid)
+                .set("type", typeId)
+        ) > 1){//如果更新成功，缓存也要刷新
+            cacheUtils.deleteCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");
+        }
+    }
 
     private Set<Integer> types = null;
     @PostConstruct

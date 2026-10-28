@@ -5,6 +5,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.example.entity.PageRestBean;
 import com.example.entity.RestBean;
 import com.example.entity.vo.response.TopicPreviewVO;
+import com.example.entity.vo.request.TopicTypeCreateVO;
+import com.example.entity.vo.response.TopicTypeVO;
 import com.example.service.TopicService;
 import com.example.utils.ProhibitedUtils;
 import jakarta.annotation.Resource;
@@ -77,6 +79,30 @@ public class ForumAdminController {
         return RestBean.success();
     }
 
+    @PostMapping("/update-type")
+    public RestBean<Void> updateType(@RequestBody TopicTypeVO vo) {
+        topicService.updateTopicType(vo);
+        return RestBean.success();
+    }
+
+    @GetMapping("/delete-type")
+    public RestBean<Void> deleteType(@RequestParam int id) {
+        topicService.deleteTopicType(id);
+        return RestBean.success();
+    }
+
+    @PostMapping("/create-type")
+    public RestBean<Void> createType(@RequestBody TopicTypeCreateVO vo) {
+        topicService.createTopicType(vo);
+        return RestBean.success();
+    }
+
+    @GetMapping("/change-topic-type")
+    public RestBean<Void> changeTopicType(@RequestParam int tid,
+                                          @RequestParam int typeId) {
+        topicService.changeTopicType(tid, typeId);
+        return RestBean.success();
+    }
 
 }
 
