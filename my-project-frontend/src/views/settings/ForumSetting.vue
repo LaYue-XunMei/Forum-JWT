@@ -30,7 +30,6 @@ const deleteTopic = (tid) =>{
 const refreshList = () =>  apiForumUserTopic(data => list.value = data)
 
 refreshList()
-apiForumTypes(data => store.forum.types = data)
 </script>
 
 <template>

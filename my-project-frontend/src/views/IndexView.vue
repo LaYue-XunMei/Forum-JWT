@@ -16,9 +16,10 @@ import {useRoute} from "vue-router";
 import UserInfo from "@/components/UserInfo.vue";
 import LightCard from "@/components/LightCard.vue";
 import {apiNotificationDelete, apiNotificationDeleteAll, apiNotificationList} from "@/net/api/user";
-import {apiForumTypes} from "@/net/api/forum";
+import {apiForumTopicSearch, apiForumTypes} from "@/net/api/forum";
 import {useStore} from "@/store";
 import AiChatWindow from "@/components/AiChatWindow.vue";
+import TopicTag from "@/components/TopicTag.vue";
 
 
 const store = useStore()
@@ -59,7 +60,6 @@ const searchInput =  reactive({
   text: ''
 })
 
-
 //后续添加
 const notification = ref([])
 const loadNotification =
@@ -70,7 +70,7 @@ const searchTopic = (keyword, callback) => {
   if(!keyword) {
     return
   }
-  apiTopicSearch(keyword, data => {
+    apiForumTopicSearch(keyword, data => {
     callback(data)
   })
 }
@@ -90,11 +90,12 @@ function deleteAllNotification() {
   apiNotificationDeleteAll(loadNotification)
 }
 
-apiForumTypes(data => {
-  const array = []
-  array.push({name: '全部', id: 0, color: 'linear-gradient(45deg, white, red, orange, gold, green, blue)'})
-  data.forEach(d => array.push(d))
-  store.forum.types = array
+
+apiForumTypes(data =>{
+    const array = []
+    array.push({name: '全部', id: 0,color:'linear-gradient(45deg,red,orange,gold,green,blue'})
+    data.forEach(item=>{array.push(item)})
+    store.forum.types = array
 })
 
 
@@ -109,9 +110,28 @@ apiForumTypes(data => {
         <el-image class="logo" src="https://element-plus.org/images/element-plus-logo.svg"></el-image>
 
         <div style="flex: 1;padding: 0 50px;text-align: center">
-          <el-input v-model="searchInput.text" style="width: 100%;max-width:500px" placeholder="搜索相关内容...">
+          <el-autocomplete v-model="searchInput.text" style="width: 100%;max-width:500px"
+                           fit-input-width
+                           @select="toTopic"
+                           :fetch-suggestions="searchTopic"
+                           placeholder="搜索相关内容...">
             <template #prefix>
               <el-icon><Search/></el-icon>
+            </template>
+            <template #default="{ item }">
+                <div class="search-item">
+                    <div class="title" v-if="item.highlight.title" >
+                        <topic-tag style="margin-right: 5px" :type="item.type" />
+                        <span v-html="item.highlight.title"></span>
+                    </div>
+                    <div class="title" v-else>
+                        <topic-tag style="margin-right: 5px" :type="item.type" />
+                        <span>{{ item.title }}</span>
+                    </div>
+                    <div class="desc" v-if="item.highlight.intro" v-html="item.highlight.intro"></div>
+                    <div class="desc" v-else >{{ item.intro}}</div>
+                </div>
+
             </template>
             <template #append>
               <el-select style="width: 120px" v-model="searchInput.type">
@@ -121,7 +141,7 @@ apiForumTypes(data => {
                 <el-option  value="4" label="教务通知"></el-option>
               </el-select>
             </template>
-          </el-input>
+          </el-autocomplete>
         </div>
         <user-info>
           <el-popover placement="bottom" :width="350" trigger="click">
@@ -201,6 +221,41 @@ apiForumTypes(data => {
 
 
 <style lang="less" scoped>
+
+.search-item{
+    line-height: 1.5;
+    padding: 10px 0;
+
+    :deep(em){
+        color: #1b1c1f;
+        background-color: yellow;
+        font-style: normal;
+    }
+
+    .title{
+        font-size: 15px;
+        font-weight: bold;
+        margin-bottom: 5px;
+
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        overflow: hidden;
+    }
+
+    .desc{
+        font-size: 13px;
+        white-space: pre-wrap;
+        color:gray;
+
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+}
+
 .main-content{
   height: 100vh;
   width: 100vw;

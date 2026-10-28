@@ -70,3 +70,6 @@ export const aoiForumProhibitedList = (success) =>
 
 export const apiForumProhibitedSave = (data,success) =>
     post(`/api/admin/forum/prohibited-save`,data,success)
+
+export const apiForumTopicSearch = (keyword,success) =>
+    get(`/api/forum/search-topic?keyword=${keyword}`,success)

@@ -6,14 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.*;
+import com.example.entity.es.TopicDocument;
 import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
-import com.example.entity.vo.response.CommentVO;
-import com.example.entity.vo.response.TopicDetailVO;
-import com.example.entity.vo.response.TopicPreviewVO;
-import com.example.entity.vo.response.TopicTopVO;
+import com.example.entity.vo.response.*;
 import com.example.mapper.*;
+import com.example.repository.TopicRepository;
 import com.example.service.NotificationService;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
@@ -23,6 +22,7 @@ import com.example.utils.ProhibitedUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +65,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
 
     @Resource
     NotificationService notificationService;
+
+    @Resource
+    TopicRepository topicRepository;
 
     @Override
     public List<TopicType> listTypes() {
@@ -331,6 +334,17 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic> implements 
     @Override
     public List<Topic> listTopicByUser(int uid) {
         return baseMapper.selectList(Wrappers.<Topic>query().eq("uid",uid));
+    }
+
+    @Override
+    public List<TopicSearchVO> searchTopic(String keyword) {
+        List<SearchHit<TopicDocument>> list = topicRepository.findByTitleOrIntro(keyword);
+        return list.stream().map( item ->{
+            TopicSearchVO vo = new TopicSearchVO();
+            BeanUtils.copyProperties(item.getContent(),vo);
+            vo.setHighlight(item.getHighlightFields()); //高亮参数字段列表
+            return vo;
+        }).toList();
     }
 
     /**

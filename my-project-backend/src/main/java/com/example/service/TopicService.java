@@ -8,10 +8,7 @@ import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
-import com.example.entity.vo.response.CommentVO;
-import com.example.entity.vo.response.TopicDetailVO;
-import com.example.entity.vo.response.TopicPreviewVO;
-import com.example.entity.vo.response.TopicTopVO;
+import com.example.entity.vo.response.*;
 
 import java.util.List;
 
@@ -45,6 +42,8 @@ public interface TopicService extends IService<Topic> {
     void setTopicInvisible(int tid, boolean invisible);
 
     List<Topic> listTopicByUser(int uid);
+
+    List<TopicSearchVO> searchTopic(String keyword);
 
 
 
